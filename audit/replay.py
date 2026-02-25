@@ -59,10 +59,7 @@ def main() -> int:
                 ok += 1
             else:
                 bad += 1
-                print(
-                    f"{RED}FAIL{RESET} record #{total} req_id={req_id} "
-                    f"evidence_ok={evidence_hash_ok} audit_ok={audit_hash_ok}"
-                )
+                print(f"{RED}FAIL{RESET} record #{total} req_id={req_id} evidence_ok={evidence_hash_ok} audit_ok={audit_hash_ok}")
 
     if bad == 0:
         print(f"{GREEN}✅ All PASS (100%){RESET} total={total}")
