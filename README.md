@@ -1,69 +1,98 @@
-# Scheme-3: Turnkey Pilot Kit (Reference Implementation)
-**Origin Compiler-Executor (13 Mother Laws) × GateVector_91 (Gate90/Gate91) × LSE (Meta-Gate)**  
-Goal: let enterprise customers prove **Fail-Closed needle gating + persisted AuditCards + replayable determinism** in ~10 minutes.
+# Origin Compiler-Executor General Constitution (13 Mother Laws) × GateVector_91 × LSE  
+## Scheme-3: Turnkey Pilot Kit (Reference Implementation)
 
-![Scheme-3 CI](https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit/actions/workflows/scheme3-ci.yml/badge.svg)
-![Repo Size](https://img.shields.io/github/repo-size/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
-![Last Commit](https://img.shields.io/github/last-commit/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
+**Origin Compiler-Executor (13 Mother Laws) × GateVector_91 (Gates 90/91) × LSE (0th Meta-Gate)**  
+**Goal**: Enable enterprise customers to verify **Fail-Closed Needle-Eye + Replayable Audit + CommitUnique as the only World Writeback** in **under 10 minutes**.
+
+---
+
+## 🚨 IMPORTANT POSITIONING STATEMENT (Please Read First)
+
+**This repository = Turnkey Pilot Kit (Reference Implementation)**  
+- For **2–4 week technical validation and value proof only**  
+- Evidence sources are **PoC simulation** (Header/boolean placeholders). Gates 1–89 are **SEALED placeholders**  
+- **NOT a production license**. **Strictly prohibited for production use**
+
+**Enterprise/Production version MUST include**:
+- Trusted Evidence Injector (client cannot spoof)
+- SEALED GateKernel v1.0 (full hash + judgment for Gates 1–89)
+- Real hardware proof chain (TEE attestation / ZKP / thermodynamic ledger)
+- Official operations, compliance, SLA and continuous evolution service
+
+Customers may freely run this pilot kit for acceptance, but production deployment must go through official delivery.
+
+---
+
+![GitHub last commit](https://img.shields.io/github/last-commit/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
+![GitHub repo size](https://img.shields.io/github/repo-size/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-![Status](https://img.shields.io/badge/Status-Pilot%20Only-orange)
 
 ---
 
-## IMPORTANT POSITIONING (MUST READ)
-**This repository is a Turnkey Pilot Kit (Reference Implementation).**
-- For **2–4 weeks technical validation and value proof only**
-- Evidence sources are **PoC simulated** (header/boolean placeholders); **Gates 1–89 are SEALED placeholders**
-- **NOT a production license**. Do **NOT** deploy directly to production.
+## 🔥 One-Click Self-Check + PoC Validation (Recommended)
 
-**Enterprise/Production** must include:
-- A **trusted Evidence Injector** (client-unforgeable)
-- **SEALED GateKernel v1.0** (full hashes & criteria for Gates 1–89)
-- **Hardware proof chain** (TEE attestation / ZK verification / energy-thermo ledger)
-- Formal **Ops / Compliance / SLA** + continuous evolution service
-
-Customers may freely run this pilot kit for evaluation, but production deployment must be delivered through official vendor delivery.
-
----
-
-## One-Command Self-Check (Recommended)
-### Cross-platform (no bash/curl required)
+### Mac / Linux / Windows (Recommended Enhanced Version)
 ```bash
-python check_pilot_kit_enhanced.py
+python check_pilot_kit_enhanced.py     # Colorful output + full one-click verification
 
-Windows PowerShell (fallback)
+Windows PowerShell (Alternative)
 .\check_pilot_kit.ps1
 
-Pass criteria
-
-Required files present ✅
-
-Docker compose stack starts ✅
-
-3 blackbox cases: 1×ALLOW (200) + 2×FAIL-CLOSED (403) ✅
-
-audit/replay.py prints ✅ All PASS (100%) ✅
-
-Architecture (PoC shape)
-
+Architecture (PoC Form)
 Client
- → Gateway Proxy (8080)  (judge first, forward only if allowed)
+ → Gateway Proxy (8080) → Judge first → Forward only if allowed
           ↓
-     Sidecar (8787)      (Gate90 + Gate91 + LSE → AuditCard persisted)
+     Sidecar (8787) → Gate90 + Gate91 + LSE → AuditCard persisted
           ↓
-   Upstream Stub (9001)  (reached ONLY on allow)
+   Upstream Stub (9001) (only reached on ALLOW)
+Core Deliverables
 
-Manual Run (optional)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DirectoryFilePurposereference-impl/python/sidecar_service.pyCore Judgment Engine (Gate90/91 + LSE full implementation)runtime/gateway_proxy.py / upstream_stub.py / DockerfileJudge-then-forward + simulated modelexamples/curl_test.sh / docker-compose.ymlBlack-box test script + one-click trioaudit/replay.py / schema_v1.jsonReplay verification tool + fixed schemaadapters/envoy-ext-authz.md / nginx.mdProduction gateway integration guidesdocs/SCHEME_3_TURNKEY_PILOT_KIT.md etc.Enterprise pilot guide + KPI
+
+Quick Start (Docker Recommended)
 docker compose up -d --build
-sh examples/curl_test.sh
-python audit/replay.py data/audit.jsonl
-docker compose down -v
-
-Docs (optional)
-
-docs/SCHEME_3_TURNKEY_PILOT_KIT.md
-
-docs/pilot-kit.md
-
-docs/success-metrics.md
+bash examples/curl_test.sh
+python audit/replay.py data/audit.jsonl   # Must be 100% PASS
+Zero-residue rollback: docker compose down — no changes to your model main path.
+Contact us for the production SEALED GateKernel + real evidence chain injector.
+Repository: https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit
