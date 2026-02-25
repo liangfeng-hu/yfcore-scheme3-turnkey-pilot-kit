@@ -72,7 +72,8 @@ class GatewayHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if urlparse(self.path).path == "/health":
-            body = (json.dumps({"ok": True, "service": "gateway_proxy", "vbus": VBUS_URL, "upstream": UPSTREAM_URL}, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+            body = (json.dumps({"ok": True, "service": "gateway_proxy", "vbus": VBUS_URL, "upstream": UPSTREAM_URL},
+                               ensure_ascii=False, indent=2) + "\n").encode("utf-8")
             return self._send(200, body)
         return self._send(404, b'{"error":"not found"}\n')
 
