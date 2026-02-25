@@ -13,7 +13,7 @@ curl -i -s -X POST "http://127.0.0.1:8080/v1/chat/completions" \
 echo ""
 echo ""
 
-echo "[Case 2] High extraction/distill risk (should FAIL-CLOSED -> 403, RC_EXTRACT_RISK)"
+echo "[Case 2] High extraction/distill risk (should FAIL-CLOSED -> 403)"
 curl -i -s -X POST "http://127.0.0.1:8080/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "X-Distill-Risk: 0.92" \
@@ -21,15 +21,10 @@ curl -i -s -X POST "http://127.0.0.1:8080/v1/chat/completions" \
 echo ""
 echo ""
 
-echo "[Case 3] Thermo proof fails (should FAIL-CLOSED -> 403, RC_THERMO_FORGERY)"
+echo "[Case 3] Thermo proof fails (should FAIL-CLOSED -> 403)"
 curl -i -s -X POST "http://127.0.0.1:8080/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "X-Thermo-OK: false" \
   -d '{"hint":"force physical fail"}'
 echo ""
-echo ""
-
-echo "Done."
-echo "Audit log: ./data/audit.jsonl"
-echo "Replay   : python audit/replay.py ./data/audit.jsonl"
 echo ""
