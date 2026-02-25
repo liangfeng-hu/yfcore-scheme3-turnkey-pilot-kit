@@ -1,28 +1,27 @@
 # Scheme-3: Turnkey Pilot Kit (Reference Implementation)
 **Origin Compiler-Executor (13 Mother Laws) × GateVector_91 (Gates 90/91) × LSE (0th Meta-Gate)**  
-Goal: Enable enterprise customers to verify **Fail-Closed Needle-Eye + Replayable Audit + CommitUnique as the only World Writeback** in **under 10 minutes**.
+Goal: enable enterprise customers to verify **Fail-Closed needle gating + replayable audit + CommitUnique as the only world writeback** in **under 10 minutes**.
 
 ![Scheme-3 CI](https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit/actions/workflows/scheme3-ci.yml/badge.svg)
-![GitHub last commit](https://img.shields.io/github/last-commit/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
-![GitHub repo size](https://img.shields.io/github/repo-size/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
+![Repo Size](https://img.shields.io/github/repo-size/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
+![Last Commit](https://img.shields.io/github/last-commit/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
 ![Status](https://img.shields.io/badge/Status-Pilot%20Only-orange)
 
 ---
 
-## 🚨 IMPORTANT POSITIONING STATEMENT (Please Read First)
+## 🚨 IMPORTANT POSITIONING (MUST READ)
+**This repository = Turnkey Pilot Kit (Reference Implementation).**
+- For **2–4 weeks** technical validation and value proof only
+- Evidence sources are **PoC simulation** (header/boolean placeholders). Gates 1–89 are **SEALED placeholders**
+- **NOT a production license.** Strictly prohibited for production use
 
-**This repository = Turnkey Pilot Kit (Reference Implementation)**  
-- For **2–4 week** technical validation and value proof only  
-- Evidence sources are **PoC simulation** (header/boolean placeholders). Gates 1–89 are **SEALED placeholders**  
-- **NOT a production license**. **Strictly prohibited for production use**
-
-**Enterprise/Production version MUST include:**
+**Enterprise/Production MUST include:**
 - Trusted Evidence Injector (client cannot spoof)
 - SEALED GateKernel v1.0 (full hash + judgment for Gates 1–89)
 - Real hardware proof chain (TEE attestation / ZKP / thermodynamic ledger)
-- Official operations, compliance, SLA and continuous evolution service
+- Official operations, compliance, SLA, and continuous evolution service
 
 Customers may freely run this pilot kit for acceptance, but production deployment must go through official delivery.
 
@@ -52,22 +51,23 @@ Client
      Sidecar (8787) → Gate90 + Gate91 + LSE → AuditCard persisted
           ↓
    Upstream Stub (9001) (only reached on ALLOW)
+
 Core Deliverables
-| Directory                | File(s)                                                               | Purpose                                                        |
-| ------------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `reference-impl/python/` | `sidecar_service.py`                                                  | **Core Judgment Engine** (Gate90/91 + LSE full implementation) |
-| `runtime/`               | `gateway_proxy.py`, `upstream_stub.py`, `Dockerfile`                  | Judge-then-forward gateway + simulated model backend           |
-| `examples/`              | `curl_test.sh`, `docker-compose.yml`                                  | Black-box test script + example compose entry                  |
-| `audit/`                 | `replay.py`, `schema_v1.json`, `canonicalization.md`                  | Replay verification + fixed schema + canonical rules           |
-| `adapters/`              | `envoy-ext-authz.md`, `nginx.md`                                      | Gateway integration guides (Envoy/Nginx)                       |
-| `docs/`                  | `SCHEME_3_TURNKEY_PILOT_KIT.md`, `pilot-kit.md`, `success-metrics.md` | Enterprise pilot guide + KPI + acceptance criteria             |
+| Directory                | File(s)                                                               | Purpose                                                    |
+| ------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `reference-impl/python/` | `sidecar_service.py`                                                  | Core Judgment Engine (Gate90/91 + LSE full implementation) |
+| `runtime/`               | `gateway_proxy.py`, `upstream_stub.py`, `Dockerfile`                  | Judge-then-forward gateway + simulated backend             |
+| `examples/`              | `curl_test.sh`, `docker-compose.yml`                                  | Black-box test script + example compose entry              |
+| `audit/`                 | `replay.py`, `schema_v1.json`, `canonicalization.md`                  | Replay verification + fixed schema + canonical rules       |
+| `adapters/`              | `envoy-ext-authz.md`, `nginx.md`                                      | Gateway integration guides (Envoy/Nginx)                   |
+| `docs/`                  | `SCHEME_3_TURNKEY_PILOT_KIT.md`, `pilot-kit.md`, `success-metrics.md` | Enterprise pilot guide + KPI + acceptance                  |
 
 Quick Start (Docker Recommended)
 docker compose up -d --build
 bash examples/curl_test.sh
 python audit/replay.py data/audit.jsonl   # Must be 100% PASS
 
-Zero-residue rollback:
+Zero-residue rollback
 docker compose down -v
 
 Scheme Relationship (Optional Subsets)
@@ -78,8 +78,22 @@ Scheme-1: Materials Only (docs-only subset) → docs/SCHEME_1_MATERIALS_ONLY.md
 
 Scheme-2: Runtime Only (engineering-only subset) → docs/SCHEME_2_RUNTIME_ONLY.md
 
+Related Reference Repositories (Optional Context)
+
+These are optional references for teams who want broader context beyond the standalone Scheme-3 PoC:
+
+Anti-distillation gateway reference (DistillGuard):
+https://github.com/liangfeng-hu/Cosmic-Seed-DistillGuard-Reference/tree/main
+
+Strategic bus / “V∞ Origin Compiler-Executor” reference:
+https://github.com/liangfeng-hu/V-infinity-Origin-Compiler-Executor-Reference/tree/main
+
+Scheme-3 remains self-contained: customers do not need to read these repositories to run the pilot.
+
 Contact
 
-Contact us for the production SEALED GateKernel + real evidence-chain injector + SLA & continuous evolution.
+Contact us for the production SEALED GateKernel + trusted evidence injector + SLA & continuous evolution.
 
-Repository: [yfcore-scheme3-turnkey-pilot-kit](https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
+Repository: https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit
+
+---
