@@ -14,15 +14,12 @@ function Write-Status {
 
 $EXPECTED_FILES = @(
     "README.md",
-    "docs/SCHEME_3_TURNKEY_PILOT_KIT.md",
-    "docs/pilot-kit.md",
-    "docs/success-metrics.md",
+    "docker-compose.yml",
     "reference-impl/python/sidecar_service.py",
+    "runtime/Dockerfile",
     "runtime/gateway_proxy.py",
     "runtime/upstream_stub.py",
-    "runtime/Dockerfile",
     "examples/curl_test.sh",
-    "docker-compose.yml",
     "audit/replay.py",
     "audit/schema_v1.json",
     "adapters/envoy-ext-authz.md",
