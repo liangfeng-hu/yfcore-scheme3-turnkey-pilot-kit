@@ -3,8 +3,10 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
+
 def _now_ms() -> int:
     return int(time.time() * 1000)
+
 
 class StubHandler(BaseHTTPRequestHandler):
     server_version = "UpstreamStub/1.0"
@@ -50,6 +52,7 @@ class StubHandler(BaseHTTPRequestHandler):
             "choices": [{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
         })
 
+
 def main():
     httpd = ThreadingHTTPServer(("0.0.0.0", 9001), StubHandler)
     print("Upstream Stub listening on http://127.0.0.1:9001")
@@ -59,6 +62,7 @@ def main():
         pass
     finally:
         httpd.server_close()
+
 
 if __name__ == "__main__":
     main()
