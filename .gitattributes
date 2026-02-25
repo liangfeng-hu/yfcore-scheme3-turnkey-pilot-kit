@@ -1,0 +1,3 @@
+# Enforce LF for text files (prevents CRLF ^M issues)
+* text=auto eol=lf
+*.ps1 text eol=crlf
