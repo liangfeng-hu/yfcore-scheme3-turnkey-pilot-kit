@@ -21,4 +21,6 @@ echo ""
 sh examples/curl_test.sh
 python audit/replay.py data/audit.jsonl
 
+docker compose down -v || true
+
 echo "✅ Scheme-3 verify OK"
