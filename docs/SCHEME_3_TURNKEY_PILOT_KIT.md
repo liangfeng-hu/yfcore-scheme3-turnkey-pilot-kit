@@ -1,5 +1,6 @@
-```markdown
-# Scheme-3: Turnkey Pilot Kit (Materials + Runnable PoC, Unified)
+# 本源编译执行器通用宪法（13母律）× GateVector_91 × LSE｜方案三：交钥匙试点包
+## Scheme-3: Turnkey Pilot Kit (Reference / Pilot-Ready)
+
 Module: **Origin Compiler-Executor (13 Mother Laws) × GateVector_91 (Gate90/Gate91) × LSE (Meta-Gate)**  
 Status: Pilot-Ready (no production keys, no real hardware proof chain)
 
@@ -92,11 +93,10 @@ Then run:
 ## 6) Acceptance: Only 3 Things
 1) Normal request **ALLOW**  
 - HTTP 200  
-- (optional) response header includes an audit id
 
 2) High-risk extraction/distillation **FAIL-CLOSED**  
 - HTTP 403  
-- clear ReasonCode (e.g., RC_EXTRACT_RISK / RC_THERMO_FORGERY / RC_SEED_BREAK / RC_LSE_VIOLATION / RC_LEDGER_*)
+- clear ReasonCode
 
 3) Audit closure is replayable  
 - `data/audit.jsonl` grows  
@@ -104,29 +104,7 @@ Then run:
 
 ---
 
-## 7) Recommended 2-Week Pilot Scope
-Pick **one** high-value route (e.g., `/v1/chat/completions` critical output).  
-Integrate as a sidecar/edge gate without changing model weights or the main chain.  
-- Week 1: environment + shadow traffic (optional)
-- Week 2: enforcement + red-team samples + replayable audit report
-
----
-
-## 8) KPIs (see success-metrics.md)
-- Distillation/extraction block rate ≥ 95% (PoC samples; production red-team samples)
-- False positive (normal blocked) ≤ 0.5%
-- AuditCard persisted rate = 100%
-- Replay determinism = 100%
-- p95 added latency ≤ 80ms (PoC target; production measured)
-
----
-
-## 9) Exit (Zero Residue)
-Remove gateway hook or take down proxy; main model chain remains clean (no dirty writes).
-
----
-
-## 10) Path to Production (No New Gates)
+## 7) Path to Production (No New Gates)
 Only allowed direction:
 1) Replace PoC evidence with **trusted Evidence Injector**
 2) Deliver **SEALED GateKernel v1.0** (Gates 1–89 full criteria)
