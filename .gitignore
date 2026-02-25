@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Scheme-3 Turnkey Pilot Kit (PoC runtime outputs) ---
+data/
+
+# --- Editor / OS (optional but recommended) ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
