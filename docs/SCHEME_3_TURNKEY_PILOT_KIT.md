@@ -1,3 +1,4 @@
+```markdown
 # 本源编译执行器通用宪法（13母律）× GateVector_91 × LSE｜方案三：交钥匙试点包
 ## Scheme-3: Turnkey Pilot Kit (Reference / Pilot-Ready)
 
@@ -34,10 +35,6 @@ Client
 → **Sidecar :8787** (Gate90 + Gate91 + LSE → persist AuditCard)  
 → **Upstream Stub :9001** (simulated model backend; reached ONLY on allow)
 
-- Sidecar = the adjudicator (Fail-Closed + CommitUnique needle semantics + audit closure)
-- Gateway Proxy = PoC gateway (maps requests to evidence; PoC uses placeholder evidence)
-- Upstream Stub = backend simulator (proves “only forward on allow”)
-
 ---
 
 ## 2) Constitutional Invariants (Non-Negotiable)
@@ -49,65 +46,18 @@ Client
 
 ---
 
-## 3) Two Moats (Why PoC ≠ “Customer can finish the product alone”)
+## 3) Two Moats
 ### 3.1 Political / Accountability Barrier inside Enterprises
-Large enterprises require security/compliance/legal/architecture sign-off.  
-They usually will not put a “forked PoC Python script” into production architecture diagrams or audit reports.  
-Production needs vendor-backed **SEALED deliverables + SLA + vulnerability response**.  
-Scheme-3 gives customers a safe “prove it works” step, while production responsibility remains with official vendor delivery.
+Production requires signable vendor-backed deliverables (SEALED artifacts + SLA + vulnerability response).  
+Forked PoC scripts are rarely acceptable for production compliance.
 
-### 3.2 Continuous Attack Surface Evolution (Subscription Reality)
-Attacks evolve continuously (today distillation, tomorrow new side-channels, next multi-agent bypass).  
-Forking PoC code does not grant customers the ability to rapidly update Gate90/91/LSE criteria, re-seal GateKernelHash, and re-close audit receipts.  
-Vendor can ship **monthly/weekly constitutional patches** (no new gates, GateVectorLen=91 fixed). This is the real long-term service value.
+### 3.2 Continuous Attack Surface Evolution
+Attacks evolve continuously; customers cannot sustainably maintain Gate90/91/LSE criteria, re-seal kernels, and re-close receipts at vendor speed.  
+Vendor can ship **monthly/weekly constitutional patches** (no new gates, GateVectorLen=91 fixed).
 
 ---
 
-## 4) PoC Red Lines
-1) Header-mode evidence exists for **fast PoC only**.  
-2) Production must use a **trusted Evidence Injector**; clients must never control decision headers.  
-3) Any Fail-Closed result must persist an AuditCard and remain replayable.  
-4) Scheme-3 does not ship production keys, real hardware proof chain, or Gates 1–89 criteria (Enterprise delivery scope).
-
----
-
-## 5) Quick Start (Two Ways)
-### A) Pure Python (no Docker)
-From repo root, open 3 terminals:
-1) `python reference-impl/python/sidecar_service.py`
-2) `python runtime/upstream_stub.py`
-3) `python runtime/gateway_proxy.py`
-
-Then run:
-- `sh examples/curl_test.sh`
-- `python audit/replay.py data/audit.jsonl`
-
-### B) Docker Compose (recommended)
-1) `docker compose up -d --build`
-2) `sh examples/curl_test.sh`
-3) `python audit/replay.py data/audit.jsonl`
-4) Exit: `docker compose down` (zero-residue rollback)
-
----
-
-## 6) Acceptance: Only 3 Things
-1) Normal request **ALLOW**  
-- HTTP 200  
-
-2) High-risk extraction/distillation **FAIL-CLOSED**  
-- HTTP 403  
-- clear ReasonCode
-
-3) Audit closure is replayable  
-- `data/audit.jsonl` grows  
-- replay prints **✅ All PASS (100%)**
-
----
-
-## 7) Path to Production (No New Gates)
-Only allowed direction:
-1) Replace PoC evidence with **trusted Evidence Injector**
-2) Deliver **SEALED GateKernel v1.0** (Gates 1–89 full criteria)
-3) Integrate hardware proof chain (TEE / ZK / energy ledger)
-4) Provide SLA + vulnerability response + continuous evolution patches
-All without adding gates or changing GateVectorLen=91.
+## 4) Quick Start (Two Ways)
+### A) One-command self-check (recommended)
+```bash
+python check_pilot_kit_enhanced.py
