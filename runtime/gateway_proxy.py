@@ -10,8 +10,10 @@ from urllib.parse import urlparse
 VBUS_URL = os.environ.get("VBUS_URL", "http://127.0.0.1:8787/v1/adjudicate")
 UPSTREAM_URL = os.environ.get("UPSTREAM_URL", "http://127.0.0.1:9001/v1/chat/completions")
 
+
 def _sha256(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
 
 def _bool(v: str, default: bool) -> bool:
     if v is None:
@@ -23,11 +25,13 @@ def _bool(v: str, default: bool) -> bool:
         return False
     return default
 
+
 def _float(v: str, default: float) -> float:
     try:
         return float(v)
     except Exception:
         return default
+
 
 def _post_json(url: str, obj: dict, timeout_s: int = 5):
     data = (json.dumps(obj, ensure_ascii=False) + "\n").encode("utf-8")
@@ -42,6 +46,7 @@ def _post_json(url: str, obj: dict, timeout_s: int = 5):
     except Exception as e:
         return 502, json.dumps({"error": "sidecar_unreachable", "detail": str(e)}, ensure_ascii=False)
 
+
 def _proxy_to_upstream(raw_body: bytes, content_type: str):
     req = urllib.request.Request(
         UPSTREAM_URL,
@@ -54,15 +59,13 @@ def _proxy_to_upstream(raw_body: bytes, content_type: str):
         out_type = resp.headers.get("Content-Type", "application/json")
         return resp.status, out_type, out_body
 
+
 class GatewayHandler(BaseHTTPRequestHandler):
     server_version = "VInfinityGatewayProxy/1.0"
 
-    def _send(self, status: int, body: bytes, content_type: str = "application/json; charset=utf-8", extra_headers: dict = None):
+    def _send(self, status: int, body: bytes, content_type: str = "application/json; charset=utf-8"):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
-        if extra_headers:
-            for k, v in extra_headers.items():
-                self.send_header(k, v)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -120,7 +123,6 @@ class GatewayHandler(BaseHTTPRequestHandler):
         }
 
         vbus_status, vbus_body = _post_json(VBUS_URL, evidence, timeout_s=5)
-
         if vbus_status != 200:
             return self._send(403, (vbus_body + "\n").encode("utf-8", errors="ignore"))
 
@@ -131,6 +133,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             body = (json.dumps({"error": "upstream_failed", "detail": str(e)}, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
             return self._send(502, body)
 
+
 def main():
     httpd = ThreadingHTTPServer(("0.0.0.0", 8080), GatewayHandler)
     print("Gateway Proxy listening on http://127.0.0.1:8080")
@@ -140,6 +143,7 @@ def main():
         pass
     finally:
         httpd.server_close()
+
 
 if __name__ == "__main__":
     main()
