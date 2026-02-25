@@ -14,7 +14,3 @@ evidence_hash = SHA256("EVIDENCE_V1|" + evidence_canon)
 audit_receipt_hash = SHA256(
   "AUDITCARD_V1|{ssot_hash}|{ledger_root}|{req_id}|{reason_code}|{out_level}|{commit_unique}|{world_writeback}|{evidence_hash}"
 )
-
-Notes:
-- PoC allows placeholder roots but they must be inside receipt_roots and closed by hash.
-- Production replaces placeholders with SEALED kernel hashes and real proof chain.
