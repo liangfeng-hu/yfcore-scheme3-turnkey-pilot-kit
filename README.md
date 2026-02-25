@@ -34,6 +34,7 @@ python check_pilot_kit_enhanced.py
 
 Windows PowerShell (fallback)
 .\check_pilot_kit.ps1
+
 Pass criteria
 
 Required files present ✅
@@ -56,9 +57,10 @@ docker compose up -d --build
 sh examples/curl_test.sh
 python audit/replay.py data/audit.jsonl
 docker compose down -v
-Optional: run using example compose file:
+Optional: run via example compose:
 docker compose -f examples/docker-compose.yml up -d --build
 docker compose -f examples/docker-compose.yml down -v
+
 Docs
 
 Full pilot guide: docs/SCHEME_3_TURNKEY_PILOT_KIT.md
@@ -82,3 +84,4 @@ Header-mode evidence exists for fast PoC only.
 Production must use a trusted Evidence Injector; clients must never control decision headers.
 
 Any failure must remain Fail-Closed: WorldWriteback=0, CommitUnique=0, and AuditCards must be persisted & replayable.
+
