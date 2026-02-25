@@ -95,5 +95,3 @@ Contact
 Contact us for the production SEALED GateKernel + trusted evidence injector + SLA & continuous evolution.
 
 Repository: https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit
-
----
