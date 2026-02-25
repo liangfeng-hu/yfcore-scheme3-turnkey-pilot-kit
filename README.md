@@ -53,13 +53,15 @@ Client
           ↓
    Upstream Stub (9001) (only reached on ALLOW)
 Core Deliverables
-Directory	File(s)	Purpose
-reference-impl/python/	sidecar_service.py	Core Judgment Engine (Gate90/91 + LSE full implementation)
-runtime/	gateway_proxy.py, upstream_stub.py, Dockerfile	Judge-then-forward gateway + simulated model backend
-examples/	curl_test.sh, docker-compose.yml	Black-box test script + example compose entry
-audit/	replay.py, schema_v1.json, canonicalization.md	Replay verification + fixed schema + canonical rules
-adapters/	envoy-ext-authz.md, nginx.md	Gateway integration guides (Envoy/Nginx)
-docs/	SCHEME_3_TURNKEY_PILOT_KIT.md, pilot-kit.md, success-metrics.md	Enterprise pilot guide + KPI + acceptance criteria
+| Directory                | File(s)                                                               | Purpose                                                        |
+| ------------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `reference-impl/python/` | `sidecar_service.py`                                                  | **Core Judgment Engine** (Gate90/91 + LSE full implementation) |
+| `runtime/`               | `gateway_proxy.py`, `upstream_stub.py`, `Dockerfile`                  | Judge-then-forward gateway + simulated model backend           |
+| `examples/`              | `curl_test.sh`, `docker-compose.yml`                                  | Black-box test script + example compose entry                  |
+| `audit/`                 | `replay.py`, `schema_v1.json`, `canonicalization.md`                  | Replay verification + fixed schema + canonical rules           |
+| `adapters/`              | `envoy-ext-authz.md`, `nginx.md`                                      | Gateway integration guides (Envoy/Nginx)                       |
+| `docs/`                  | `SCHEME_3_TURNKEY_PILOT_KIT.md`, `pilot-kit.md`, `success-metrics.md` | Enterprise pilot guide + KPI + acceptance criteria             |
+
 Quick Start (Docker Recommended)
 docker compose up -d --build
 bash examples/curl_test.sh
