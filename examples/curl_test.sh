@@ -6,7 +6,7 @@ echo "SCHEME-3 Blackbox Test (Gateway -> Sidecar -> Upstream)"
 echo "======================================================"
 echo ""
 
-echo "[Case 1] Normal request (should ALLOW -> upstream returns 200)"
+echo "[Case 1] Normal request (should ALLOW -> 200)"
 curl -i -s -X POST "http://127.0.0.1:8080/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{"hint":"hello"}'
