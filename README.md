@@ -24,3 +24,69 @@ Customers may freely run this Pilot Kit for evaluation, but production deploymen
 ### Mac / Linux
 ```bash
 sh scripts/verify_scheme3.sh
+
+Windows PowerShell
+powershell -ExecutionPolicy Bypass -File scripts\verify_scheme3.ps1
+
+Pass criteria
+
+Case 1: HTTP 200 (ALLOW)
+
+Case 2/3: HTTP 403 (FAIL-CLOSED, clear ReasonCode)
+
+Replay: ✅ All PASS (100%)
+
+Troubleshooting (Customer Self-Check)
+
+Please read first:
+
+docs/README.md
+
+Architecture (PoC shape)
+
+Client
+→ Gateway Proxy :8080 (judge first, forward only if allowed)
+→ Sidecar :8787 (Gate90 + Gate91 + LSE → AuditCard persisted)
+→ Upstream Stub :9001 (simulated model backend; reached ONLY on allow)
+
+Relationship of the 3 Schemes
+
+Externally, recommend sending only Scheme-3.
+Scheme-1/2 are subsets of Scheme-3.
+
+Scheme-3 (recommended single external entry): docs/SCHEME_3_TURNKEY_PILOT_KIT.md
+
+Scheme-1 (materials only): docs/SCHEME_1_MATERIALS_ONLY.md
+
+Scheme-2 (runtime only): docs/SCHEME_2_RUNTIME_ONLY.md
+
+PoC Red Lines (Production MUST change)
+
+Header-mode evidence is for fast PoC only.
+
+Production evidence must be injected by a trusted gateway-side Evidence Injector; clients must never control decision headers.
+
+Any failure must remain Fail-Closed: WorldWriteback=0, CommitUnique=0, and AuditCard must be persisted & replayable.
+
+Key Paths
+
+docs/SCHEME_3_TURNKEY_PILOT_KIT.md — full enterprise pilot guide
+
+docs/README.md — customer self-troubleshooting
+
+docs/pilot-kit.md — short 2-week pilot sheet
+
+docs/success-metrics.md — KPI and acceptance
+
+reference-impl/python/sidecar_service.py — Sidecar core (Gate90/Gate91/LSE)
+
+runtime/gateway_proxy.py — judge-then-forward proxy
+
+runtime/upstream_stub.py — simulated backend
+
+examples/curl_test.sh — 3 blackbox cases
+
+audit/replay.py — determinism replay check
+
+adapters/envoy-ext-authz.md / adapters/nginx.md — gateway integration notes
+
