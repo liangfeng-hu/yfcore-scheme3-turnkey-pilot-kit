@@ -1,18 +1,13 @@
-```python
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Scheme-3 Turnkey Pilot Kit — Enhanced Self-Check (Cross-platform)
 
-What it does:
 1) Checks required files exist
-2) Starts docker compose stack (root docker-compose.yml)
+2) Starts docker compose stack
 3) Runs 3 blackbox cases via HTTP (no bash/curl dependency)
 4) Runs audit replay check
 5) Tears down stack
-
-Usage:
-  python check_pilot_kit_enhanced.py
 """
 
 import sys
@@ -104,7 +99,6 @@ def main() -> int:
         return 1
     cprint("✅ Required files present", "green")
 
-    # clear data/
     data_dir = root / "data"
     data_dir.mkdir(exist_ok=True)
     for p in data_dir.glob("*.jsonl"):
@@ -114,14 +108,12 @@ def main() -> int:
             pass
     cprint("✅ data/ cleared", "green")
 
-    # compose up
     cprint("\nStarting docker compose stack...", "cyan", bold=True)
     if not run_cmd("docker compose up -d --build", root, timeout=600):
         cprint("Docker compose failed. Ensure Docker Desktop is running.", "red")
         return 1
     time.sleep(6)
 
-    # run cases
     base = "http://127.0.0.1:8080/v1/chat/completions"
     cprint("\nRunning blackbox cases...", "cyan", bold=True)
 
@@ -149,16 +141,13 @@ def main() -> int:
         return 1
     cprint("✅ Case 3 PASS (FAIL-CLOSED 403)", "green")
 
-    # replay
     cprint("\nRunning audit replay...", "cyan", bold=True)
     if not run_cmd("python audit/replay.py data/audit.jsonl", root, timeout=120):
         run_cmd("docker compose down -v", root, timeout=120)
         return 1
 
     run_cmd("docker compose down -v", root, timeout=120)
-
     cprint("\n🎉 ALL PASS — Scheme-3 is ready to ship.", "green", bold=True)
-    cprint("Production requires vendor SEALED kernel + trusted evidence injection + SLA.", "cyan")
     return 0
 
 
