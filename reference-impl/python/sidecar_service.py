@@ -3,20 +3,20 @@
 """
 Scheme-3 Sidecar Service (Reference / Pilot-Ready)
 
-- Endpoints:
-  - GET  /health          -> service health + ledger status
-  - GET  /v1/adjudicate   -> Header-mode PoC adjudication (Envoy/Nginx friendly)
-  - POST /v1/adjudicate   -> JSON-mode adjudication
+Endpoints:
+  - GET  /health
+  - GET  /v1/adjudicate   (header-mode PoC)
+  - POST /v1/adjudicate   (json evidence)
 
-- Core semantics:
-  - GateVectorLen fixed at 91 (Gates 1-89 are SEALED placeholders; Gate90/Gate91 implemented here)
-  - LSE is a meta-gate (does not consume GateVector index)
+Core semantics:
+  - GateVectorLen fixed at 91 (Gates 1-89 are SEALED placeholders)
+  - Gate90 + Gate91 are implemented here
+  - LSE is a meta-gate (not consuming GateVector slot)
   - Fail-Closed: any failure -> WorldWriteback=0, CommitUnique=0
-  - World write is allowed only when:
-      I_FLOW == 0 AND OutLevel == "FOES"
-  - AuditCards are persisted to data/audit.jsonl and replayable via audit/replay.py
+  - Allow world-write only when I_FLOW==0 AND OutLevel=="FOES"
+  - Persist replayable AuditCards to data/audit.jsonl
 
-NOTE: PoC evidence uses header/boolean placeholders for speed. Production requires a trusted Evidence Injector.
+Production requires trusted evidence injection; PoC uses placeholders for speed.
 """
 
 import json
@@ -27,18 +27,10 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
-# -----------------------------
-# Constants (Frozen semantics)
-# -----------------------------
 GATE_VECTOR_LEN = 91
 
-OUTLEVEL_RANK = {
-    "ShadowOnly": 0,
-    "EvidencePlan": 1,
-    "FOES": 2,  # high-fidelity / world-write candidate
-}
+OUTLEVEL_RANK = {"ShadowOnly": 0, "EvidencePlan": 1, "FOES": 2}
 
-# Placeholder thresholds for PoC (production should use SEALED GateKernel criteria)
 TAU_EX_BY_RISK_CLASS = {
     "CoreSystem": 0.25,
     "HighValue": 0.35,
@@ -63,9 +55,6 @@ LEDGER_VERSION = "LEDGER_V1"
 EVIDENCE_VERSION = "EVIDENCE_V1"
 
 
-# -----------------------------
-# Small utilities
-# -----------------------------
 def _log(msg: str) -> None:
     sys.stderr.write(msg.rstrip() + "\n")
     sys.stderr.flush()
@@ -80,12 +69,10 @@ def _now_ms() -> int:
 
 
 def _canon_json(obj) -> str:
-    # Deterministic canonical JSON representation
     return json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def _repo_root() -> Path:
-    # reference-impl/python/sidecar_service.py -> repo root is parents[2]
     return Path(__file__).resolve().parents[2]
 
 
@@ -134,20 +121,10 @@ def _float_from_str(v: str, default: float = 0.0) -> float:
         return default
 
 
-# -----------------------------
-# Persistent ledger with rolling root
-# -----------------------------
 class PersistentLedger:
     """
     Corruption-tolerant rolling ledger root.
-
-    - Corrupt JSON lines do not crash the service.
-    - Any corruption => ledger_clean = False => world-write is fail-closed.
-    - Evidence + Audit still written so PoC remains diagnosable.
-
-    Ledger root is folded as:
-      root_0 = SHA256("LEDGER_V1|INIT")
-      root_{i+1} = SHA256(root_i + "|" + SHA256(canon(event_i)))
+    Any corruption => ledger_clean=False => world-write is fail-closed.
     """
 
     def __init__(self, ledger_path: Path):
@@ -158,7 +135,6 @@ class PersistentLedger:
         self.ledger_root = _sha256(f"{LEDGER_VERSION}|INIT")
         self.corrupted = False
         self.corrupt_count = 0
-
         self._load()
 
     def _fold_event_hash(self, ev_hash: str) -> None:
@@ -167,7 +143,6 @@ class PersistentLedger:
     def _load(self) -> None:
         if not self.ledger_path.exists():
             return
-
         try:
             lines = self.ledger_path.read_text(encoding="utf-8", errors="ignore").splitlines()
         except Exception as e:
@@ -182,8 +157,7 @@ class PersistentLedger:
                 continue
             try:
                 e = json.loads(line)
-                ev_hash = _sha256(_canon_json(e))
-                self._fold_event_hash(ev_hash)
+                self._fold_event_hash(_sha256(_canon_json(e)))
                 self.events.append(e)
             except Exception:
                 self.corrupted = True
@@ -194,8 +168,7 @@ class PersistentLedger:
                     "event": "CORRUPT_LINE",
                     "data": {"line_no": idx, "line_sha": _sha256(line)},
                 }
-                ev_hash = _sha256(_canon_json(synthetic))
-                self._fold_event_hash(ev_hash)
+                self._fold_event_hash(_sha256(_canon_json(synthetic)))
                 self.events.append(synthetic)
 
         if self.corrupted:
@@ -208,9 +181,6 @@ class PersistentLedger:
         self.events.append(e)
 
 
-# -----------------------------
-# Gate logic
-# -----------------------------
 def _check_receipt_roots(receipt_roots: dict):
     missing = []
     for k in REQUIRED_RECEIPT_ROOTS:
@@ -220,13 +190,6 @@ def _check_receipt_roots(receipt_roots: dict):
 
 
 def _eval_gate90(intent_group: dict, seed_group: dict):
-    """
-    Gate90: I_AWAKE_SCORE (PoC version)
-    Pass iff:
-      - IIA_OK
-      - S_EX <= tau_EX(risk_class)
-      - SeedContinuity == 1
-    """
     iia_ok = bool(intent_group.get("iia_ok", False))
     risk_class = _first_nonempty(intent_group.get("risk_class"), default="Normal")
     s_ex = _float_from_str(intent_group.get("s_ex"), 0.0)
@@ -239,18 +202,10 @@ def _eval_gate90(intent_group: dict, seed_group: dict):
         return False, "RC_EXTRACT_RISK", {"risk_class": risk_class, "s_ex": s_ex, "tau_ex": tau_ex, "seed_ok": seed_ok}
     if not seed_ok:
         return False, "RC_SEED_BREAK", {"risk_class": risk_class, "s_ex": s_ex, "tau_ex": tau_ex, "seed_ok": seed_ok}
-
     return True, "", {"risk_class": risk_class, "s_ex": s_ex, "tau_ex": tau_ex, "seed_ok": seed_ok}
 
 
 def _eval_gate91(out_level: str, physical_group: dict):
-    """
-    Gate91: I_ENTROPY_CLONE (PoC version)
-    Pass iff:
-      - OutLevel <= EvidencePlan
-        OR
-      - zk_ok & attestation_ok & thermo_ok & energy_ok
-    """
     if _out_level_leq(out_level, "EvidencePlan"):
         return True, "", {"bypass": "OutLevel<=EvidencePlan"}
 
@@ -266,15 +221,6 @@ def _eval_gate91(out_level: str, physical_group: dict):
 
 
 def _eval_lse(intent_complete: bool, time_complete: bool, phys_complete: bool, seed_ok: bool, out_level: str, gate91_ok: bool, lse_group: dict):
-    """
-    LSE meta-gate (does not consume GateVector slot)
-    Pass iff:
-      - trust_ok
-      - budget_ok
-      - complete_all (intent/time/phys)
-      - superpose_ok:
-           seed_ok AND (OutLevel<=EvidencePlan OR Gate91_OK)
-    """
     trust_ok = bool(lse_group.get("trust_ok", True))
     budget_ok = bool(lse_group.get("budget_ok", True))
 
@@ -282,22 +228,17 @@ def _eval_lse(intent_complete: bool, time_complete: bool, phys_complete: bool, s
     superpose_ok = seed_ok and (True if _out_level_leq(out_level, "EvidencePlan") else gate91_ok)
 
     if not trust_ok:
-        return False, "RC_LSE_VIOLATION", {"sub_reason": "RC_INFRA_CORRUPTED", "complete_all": complete_all, "superpose_ok": superpose_ok, "budget_ok": budget_ok}
+        return False, "RC_LSE_VIOLATION", {"sub_reason": "RC_INFRA_CORRUPTED", "complete_all": complete_all, "superpose_ok": superpose_ok}
     if not budget_ok:
-        return False, "RC_LSE_VIOLATION", {"sub_reason": "RC_BUDGET_SELFPROTECT", "complete_all": complete_all, "superpose_ok": superpose_ok, "trust_ok": trust_ok}
+        return False, "RC_LSE_VIOLATION", {"sub_reason": "RC_BUDGET_SELFPROTECT", "complete_all": complete_all, "superpose_ok": superpose_ok}
     if not complete_all:
         return False, "RC_LSE_VIOLATION", {"sub_reason": "RC_LAYER_INCOMPLETE", "complete_all": complete_all, "superpose_ok": superpose_ok}
     if not superpose_ok:
         return False, "RC_LSE_VIOLATION", {"sub_reason": "RC_SUPERPOSE_FAIL", "complete_all": complete_all, "superpose_ok": superpose_ok}
-
     return True, "", {"complete_all": complete_all, "superpose_ok": superpose_ok, "trust_ok": trust_ok, "budget_ok": budget_ok}
 
 
-# -----------------------------
-# Evidence builder (Header-mode PoC)
-# -----------------------------
 def _build_evidence_from_headers(headers: dict):
-    # Header-mode (Envoy/Nginx auth_request friendly). Production must not be client-spoofable.
     out_level = _first_nonempty(headers.get("X-OutLevel"), default="FOES")
 
     intent = {
@@ -305,22 +246,18 @@ def _build_evidence_from_headers(headers: dict):
         "iia_ok": _bool_from_str(headers.get("X-IIA-OK"), default=True),
         "s_ex": _float_from_str(headers.get("X-S_EX"), default=0.10),
     }
-
     seed = {"seed_continuity_ok": _bool_from_str(headers.get("X-Seed-OK"), default=True)}
-
     physical = {
         "zk_ok": _bool_from_str(headers.get("X-ZK-OK"), default=True),
         "attestation_ok": _bool_from_str(headers.get("X-Attest-OK"), default=True),
         "thermo_ok": _bool_from_str(headers.get("X-Thermo-OK"), default=True),
         "energy_ok": _bool_from_str(headers.get("X-Energy-OK"), default=True),
     }
-
     lse = {
         "trust_ok": _bool_from_str(headers.get("X-Trust-OK"), default=True),
         "budget_ok": _bool_from_str(headers.get("X-Budget-OK"), default=True),
     }
 
-    # PoC placeholders (production replaces with real roots)
     receipt_roots = {
         "canon_header": _first_nonempty(headers.get("X-Canon-Header"), default="CANONHEADER_POC"),
         "ssot_hash": _first_nonempty(headers.get("X-SSOT-Hash"), default=_sha256("SSOT_POC")),
@@ -343,9 +280,6 @@ def _build_evidence_from_headers(headers: dict):
     }
 
 
-# -----------------------------
-# HTTP handler
-# -----------------------------
 class VInfinityHandler(BaseHTTPRequestHandler):
     server_version = "VInfinitySidecar/1.1"
 
@@ -359,7 +293,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
-
         if path == "/health":
             return self._send_json(200, {
                 "ok": True,
@@ -369,15 +302,9 @@ class VInfinityHandler(BaseHTTPRequestHandler):
                 "ledger_corrupted": 1 if self.server.ledger.corrupted else 0,
                 "ledger_corrupt_count": self.server.ledger.corrupt_count,
             })
-
         if path == "/v1/adjudicate":
-            # Header-mode adjudication
-            req_id = _first_nonempty(self.headers.get("X-Req-Id"), default="")[:64]
-            if not req_id:
-                req_id = _sha256("req|" + str(_now_ms()))[:16]
-            evidence = _build_evidence_from_headers(self.headers)
-            return self._handle_adjudicate(req_id, evidence)
-
+            req_id = _first_nonempty(self.headers.get("X-Req-Id"), default="")[:64] or _sha256("req|" + str(_now_ms()))[:16]
+            return self._handle_adjudicate(req_id, _build_evidence_from_headers(self.headers))
         return self._send_json(404, {"error": "not found"})
 
     def do_POST(self):
@@ -388,7 +315,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length) if length > 0 else b"{}"
 
-        # req_id: header -> json -> generated
         req_id = _first_nonempty(self.headers.get("X-Req-Id"), default="")[:64]
         if not req_id:
             try:
@@ -399,7 +325,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         if not req_id:
             req_id = _sha256("req|" + str(_now_ms()))[:16]
 
-        # evidence: json body preferred; fallback to header-mode
         try:
             obj = json.loads(raw.decode("utf-8"))
             evidence = obj if isinstance(obj, dict) else _build_evidence_from_headers(self.headers)
@@ -416,16 +341,13 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         lse_group = evidence.get("lse_support") or {}
         receipt_roots = evidence.get("receipt_roots") or {}
 
-        # Ledger gate: required roots must exist AND ledger must not be corrupted
         missing = _check_receipt_roots(receipt_roots)
         ledger_clean = not self.server.ledger.corrupted
         i_ledger_ok = (len(missing) == 0) and ledger_clean
 
-        # Gate90 / Gate91
         gate90_ok, gate90_rc, gate90_dbg = _eval_gate90(intent_group, seed_group)
         gate91_ok, gate91_rc, gate91_dbg = _eval_gate91(out_level, physical_group)
 
-        # Layer completeness for LSE
         intent_complete = ("iia_ok" in intent_group) and ("s_ex" in intent_group) and ("risk_class" in intent_group)
         time_complete = ("seed_continuity_ok" in seed_group)
         phys_complete = True if _out_level_leq(out_level, "EvidencePlan") else (
@@ -435,11 +357,9 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         seed_ok = bool(seed_group.get("seed_continuity_ok", False))
         lse_ok, lse_rc, lse_dbg = _eval_lse(intent_complete, time_complete, phys_complete, seed_ok, out_level, gate91_ok, lse_group)
 
-        # GateVector aggregation (Gates 1-89 SEALED placeholders treated as pass here)
         i_gatevector_ok = gate90_ok and gate91_ok
         i_flow_ok = i_ledger_ok and i_gatevector_ok and lse_ok
 
-        # Enforced degradation level on failures
         enforced_out_level = out_level
         pendstop = False
 
@@ -455,7 +375,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
             enforced_out_level = "EvidencePlan"
             pendstop = True
 
-        # Evidence hash closure
         evidence_for_hash = {
             "out_level": out_level,
             "intent_audit_group": intent_group,
@@ -467,24 +386,16 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         evidence_canon = _canon_json(evidence_for_hash)
         evidence_hash = _sha256(f"{EVIDENCE_VERSION}|{evidence_canon}")
 
-        # Append ledger event
         self.server.ledger.append(req_id, "ADJUDICATE", {"evidence_hash": evidence_hash, "out_level": out_level})
 
         ssot_hash = _first_nonempty(receipt_roots.get("ssot_hash"), default=_sha256("SSOT_POC"))
         ledger_root = self.server.ledger.ledger_root
+        seed_t = _sha256(_canon_json({"ssot_hash": ssot_hash, "ledger_root": ledger_root, "evidence_hash": evidence_hash}))
 
-        seed_t = _sha256(_canon_json({
-            "ssot_hash": ssot_hash,
-            "ledger_root": ledger_root,
-            "evidence_hash": evidence_hash,
-        }))
-
-        # World-write allowed ONLY if I_FLOW==0 and OutLevel==FOES
         allow_world = bool(i_flow_ok and (out_level == "FOES"))
         commit_unique = 1 if allow_world else 0
         world_writeback = 1 if allow_world else 0
 
-        # ReasonCode priority
         if not ledger_clean:
             reason_code = "RC_LEDGER_CORRUPTED"
         elif len(missing) != 0:
@@ -500,7 +411,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         else:
             reason_code = "RC_SUCCESS"
 
-        # Audit receipt hash (must match audit/replay.py)
         audit_receipt_hash = _sha256(
             f"{AUDIT_VERSION}|{ssot_hash}|{ledger_root}|{req_id}|{reason_code}|{enforced_out_level}|{commit_unique}|{world_writeback}|{evidence_hash}"
         )
@@ -513,8 +423,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
             "ssot_hash": ssot_hash,
             "canon_header": _first_nonempty(receipt_roots.get("canon_header"), default="CANONHEADER_POC"),
             "ledger_root": ledger_root,
-            "ledger_corrupted": 1 if self.server.ledger.corrupted else 0,
-            "ledger_corrupt_count": self.server.ledger.corrupt_count,
             "seed_t": seed_t,
             "evidence_hash": evidence_hash,
             "evidence_canon": evidence_canon,
@@ -547,9 +455,6 @@ class VInfinityHandler(BaseHTTPRequestHandler):
         return self._send_json(200 if allow_world else 403, {"payload": payload, "audit_card": audit_card})
 
 
-# -----------------------------
-# Main
-# -----------------------------
 def main():
     repo = _repo_root()
     data_dir = repo / "data"
@@ -568,8 +473,6 @@ def main():
     print("API    : http://127.0.0.1:8787/v1/adjudicate")
     print(f"Ledger : {ledger_path}")
     print(f"Audit  : {audit_path}")
-    if httpd.ledger.corrupted:
-        print(f"! Ledger corrupted_lines={httpd.ledger.corrupt_count} (world-write disabled)")
     print("Press Ctrl+C to stop.\n")
 
     try:
