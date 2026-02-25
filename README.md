@@ -82,4 +82,4 @@ Contact
 
 Contact us for the production SEALED GateKernel + real evidence-chain injector + SLA & continuous evolution.
 
-Repository: https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit
+Repository: [yfcore-scheme3-turnkey-pilot-kit](https://github.com/liangfeng-hu/yfcore-scheme3-turnkey-pilot-kit)
