@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  sidecar:
+    build:
+      context: ..
+      dockerfile: runtime/Dockerfile
+    container_name: vinfinity-sidecar
+    command: ["python", "reference-impl/python/sidecar_service.py"]
+    ports:
+      - "8787:8787"
+    volumes:
+      - ../data:/app/data
+    restart: unless-stopped
+
+  upstream:
+    build:
+      context: ..
+      dockerfile: runtime/Dockerfile
+    container_name: vinfinity-upstream
+    command: ["python", "runtime/upstream_stub.py"]
+    ports:
+      - "9001:9001"
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: runtime/Dockerfile
+    container_name: vinfinity-gateway
+    command: ["python", "runtime/gateway_proxy.py"]
+    environment:
+      - VBUS_URL=http://sidecar:8787/v1/adjudicate
+      - UPSTREAM_URL=http://upstream:9001/v1/chat/completions
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sidecar
+      - upstream
+    restart: unless-stopped
