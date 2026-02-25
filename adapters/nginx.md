@@ -28,3 +28,8 @@ server {
         return 403;
     }
 }
+PoC Evidence Headers
+
+X-Risk-Class / X-S_EX / X-IIA-OK / X-Seed-OK / X-Thermo-OK / X-Attest-OK / X-ZK-OK / X-Energy-OK / X-OutLevel
+
+Production Recommendation: evidence headers must be injected server-side only via a trusted Evidence Injector.
