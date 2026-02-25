@@ -46,42 +46,24 @@ Docker compose stack starts ✅
 audit/replay.py prints ✅ All PASS (100%) ✅
 
 Architecture (PoC shape)
+
 Client
  → Gateway Proxy (8080)  (judge first, forward only if allowed)
           ↓
      Sidecar (8787)      (Gate90 + Gate91 + LSE → AuditCard persisted)
           ↓
    Upstream Stub (9001)  (reached ONLY on allow)
-Quick Start (Manual)
+
+Manual Run (optional)
 docker compose up -d --build
 sh examples/curl_test.sh
 python audit/replay.py data/audit.jsonl
 docker compose down -v
-Optional: run via example compose:
-docker compose -f examples/docker-compose.yml up -d --build
-docker compose -f examples/docker-compose.yml down -v
 
-Docs
+Docs (optional)
 
-Full pilot guide: docs/SCHEME_3_TURNKEY_PILOT_KIT.md
+docs/SCHEME_3_TURNKEY_PILOT_KIT.md
 
-Customer troubleshooting: docs/README.md
+docs/pilot-kit.md
 
-2-week pilot sheet: docs/pilot-kit.md
-
-KPI acceptance: docs/success-metrics.md
-
-Scheme subsets (optional):
-
-Scheme-1 (materials only): docs/SCHEME_1_MATERIALS_ONLY.md
-
-Scheme-2 (runtime only): docs/SCHEME_2_RUNTIME_ONLY.md
-
-PoC Red Lines (Production MUST change)
-
-Header-mode evidence exists for fast PoC only.
-
-Production must use a trusted Evidence Injector; clients must never control decision headers.
-
-Any failure must remain Fail-Closed: WorldWriteback=0, CommitUnique=0, and AuditCards must be persisted & replayable.
-
+docs/success-metrics.md
