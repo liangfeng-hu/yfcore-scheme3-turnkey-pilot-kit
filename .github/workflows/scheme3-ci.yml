@@ -20,10 +20,9 @@ jobs:
           docker compose version
           python --version
 
-      - name: Run Scheme-3 verification
+      - name: Run enhanced self-check
         run: |
-          mkdir -p data
-          bash scripts/verify_scheme3.sh
+          python check_pilot_kit_enhanced.py
 
       - name: Dump logs on failure
         if: failure()
